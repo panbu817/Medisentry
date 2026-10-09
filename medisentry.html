@@ -1,0 +1,2180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>MediSentry - Medicine Verification</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f7fb;
+    color: #222;
+}
+
+header {
+    background: #14532D;
+    color: white;
+    padding: 22px;
+    text-align: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+header p {
+    margin: 6px 0 0;
+}
+.container {
+    width: 90%;
+    max-width: 850px;
+    margin: 30px auto;
+}
+
+.card {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    margin-bottom: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+h2 {
+    color: #14532D;
+}
+
+label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 12px;
+    margin-top: 7px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 8px;
+    background: #14532D;
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #14532D;
+}
+
+.price {
+    margin-top: 15px;
+    padding: 12px;
+    background: #eef5fa;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.info {
+    background: #e8f1ff;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+.warning {
+    background: #fff3cd;
+    color: #795900;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+}
+
+.result {
+    margin-top: 20px;
+    padding: 18px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
+.success {
+    background: #dff5e4;
+    color: #176b2c;
+}
+
+.failure {
+    background: #ffe2e2;
+    color: #a11a1a;
+}
+
+.otpBox {
+    margin-top: 20px;
+    padding: 18px;
+    background: #f1f6fa;
+    border-radius: 10px;
+}
+
+#mediSentry {
+    display: none;
+}
+
+#otpSection {
+    display: none;
+}
+
+#medicineCount {
+    margin-top: 8px;
+    color: #666;
+    font-size: 13px;
+}
+
+.small-note {
+    font-size: 13px;
+    color: #666;
+    margin-top: 8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>💊 MediSentry</h1>
+    <p>Smart Prescription Verification System</p>
+</header>
+
+
+<div class="container">
+
+
+<!-- =====================================================
+     MEDICINE STORE
+     ===================================================== -->
+
+<div class="card">
+
+    <h2>🛒 Medicine Store</h2>
+
+    <label for="medicine">
+        Select Medicine
+    </label>
+
+    <select id="medicine" onchange="updatePrice()">
+    </select>
+
+    <div id="medicineCount"></div>
+
+    <div class="price">
+        Demo Price:
+        ₹<span id="price">50</span>
+        per unit
+    </div>
+
+    <label for="quantity">
+        Quantity
+    </label>
+
+    <input
+        type="number"
+        id="quantity"
+        min="1"
+        value="1"
+    >
+
+    <button onclick="buyMedicine()">
+        BUY NOW
+    </button>
+
+</div>
+
+
+<!-- =====================================================
+     MEDISENTRY
+     ===================================================== -->
+
+<div class="card" id="mediSentry">
+
+    <h2>🛡️ MediSentry Prescription Verification</h2>
+
+    <div class="info">
+        Quantity above 5 requires prescription verification.
+    </div>
+
+    <div class="warning">
+        📅 Prescription validity:
+        The prescription must be dated within the
+        last <strong>14 days</strong>.
+    </div>
+
+
+    <label>
+        Selected Medicine
+    </label>
+
+    <input
+        type="text"
+        id="selectedMedicine"
+        readonly
+    >
+
+
+    <label for="customerName">
+        Customer / Patient Name
+    </label>
+
+    <input
+        type="text"
+        id="customerName"
+        placeholder="Enter name"
+    >
+
+
+    <label for="age">
+        Age
+    </label>
+
+    <input
+        type="number"
+        id="age"
+        min="1"
+        placeholder="Enter age"
+    >
+
+
+    <label for="mobileNumber">
+        Mobile Number
+    </label>
+
+    <input
+        type="tel"
+        id="mobileNumber"
+        placeholder="Enter 10-digit mobile number"
+        maxlength="10"
+    >
+
+
+    <label for="purchaseDate">
+        Date of Purchase
+    </label>
+
+    <input
+        type="date"
+        id="purchaseDate"
+    >
+
+
+    <label for="prescribedDate">
+        Date Prescribed
+    </label>
+
+    <input
+        type="date"
+        id="prescribedDate"
+    >
+
+
+    <label for="prescription">
+        Upload Prescription
+    </label>
+
+    <input
+        type="file"
+        id="prescription"
+        accept="image/*"
+    >
+
+    <div class="small-note">
+        Demo only — upload a clear test prescription image.
+    </div>
+
+
+    <button onclick="verifyPrescription()">
+        VERIFY PRESCRIPTION
+    </button>
+
+
+    <div id="verificationResult"></div>
+
+
+    <!-- =================================================
+         OTP - LAST STEP
+         ================================================= -->
+
+    <div id="otpSection" class="otpBox">
+
+        <h3>📱 Final Verification</h3>
+
+        <p>
+            Prescription details have passed verification.
+        </p>
+
+        <p>
+            An OTP has been sent to the registered
+            mobile number.
+        </p>
+
+        <p>
+            <strong>Demo OTP: 123456</strong>
+        </p>
+
+        <label for="otp">
+            Enter OTP
+        </label>
+
+        <input
+            type="text"
+            id="otp"
+            maxlength="6"
+            placeholder="Enter 6-digit OTP"
+        >
+
+        <button onclick="verifyOTP()">
+            VERIFY OTP
+        </button>
+
+        <div id="otpResult"></div>
+
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* =====================================================
+   MEDICINE CATALOG
+   ===================================================== */
+
+const medicineNames = [
+
+"Abacavir Demo",
+"Abiraterone Demo",
+"Acetazolamide Demo",
+"Acetylcysteine Demo",
+"Adalimumab Demo",
+"Adapalene Demo",
+"Adefovir Demo",
+"Albendazole Demo",
+"Albuterol Demo",
+"Alendronate Demo",
+"Allopurinol Demo",
+"Almotriptan Demo",
+"Amantadine Demo",
+"Ambrisentan Demo",
+"Amikacin Demo",
+"Amiloride Demo",
+"Aminophylline Demo",
+"Amiodarone Demo",
+"Amitriptyline Demo",
+"Amlodipine Demo",
+"Amoxicillin 500 mg Tablet",
+"Amlokind AT",
+"Anastrozole Demo",
+"Apixaban Demo",
+"Aripiprazole Demo",
+"Armodafinil Demo",
+"Artemether Demo",
+"Atenolol Demo",
+"Atorvastatin Demo",
+"Atovaquone Demo",
+"Azathioprine Demo",
+"Azithromycin Demo",
+"Aztreonam Demo",
+
+"Baloxavir Demo",
+"Bambuterol Demo",
+"Baricitinib Demo",
+"Beclomethasone Demo",
+"Belimumab Demo",
+"Benazepril Demo",
+"Benidipine Demo",
+"Benralizumab Demo",
+"Benzonatate Demo",
+"Betahistine Demo",
+"Betamethasone Demo",
+"Bethanechol Demo",
+"Bezafibrate Demo",
+"Bicalutamide Demo",
+"Bilastine Demo",
+"Bisacodyl Demo",
+"Bismuth Demo",
+"Bivalirudin Demo",
+"Bleomycin Demo",
+"Blinatumomab Demo",
+"Bortezomib Demo",
+"Bosentan Demo",
+"Botulinum Demo",
+"Brolucizumab 120 MG/ML INJ (PACK 1X1) (R)",
+"Bromocriptine Demo",
+"Budesonide Demo",
+"Buprenorphine Demo",
+"Bupropion Demo",
+"Buspirone Demo",
+
+"Cabergoline Demo",
+"Cabozantinib Demo",
+"Calcitriol Demo",
+"Calcium Carbonate 500 mg Tablet",
+"Calcium Tablet",
+"Candesartan Demo",
+"Capecitabine Demo",
+"Captopril Demo",
+"Carbamazepine Demo",
+"Carbidopa Demo",
+"Carboplatin Demo",
+"Carvedilol Demo",
+"Cefaclor Demo",
+"Cefadroxil Demo",
+"Cefdinir Demo",
+"Cefepime Demo",
+"Cefixime Demo",
+"Cefoperazone Demo",
+"Cefotaxime Demo",
+"Cefpodoxime Demo",
+"Cefprozil Demo",
+"Ceftazidime Demo",
+"Ceftriaxone Demo",
+"Celecoxib Demo",
+"Cetirizine Demo",
+"Chlorambucil Demo",
+"Chloramphenicol Demo",
+"Chloroquine Demo",
+"Chlorpheniramine Demo",
+"Cilostazol Demo",
+"Cimetidine Demo",
+"Ciprofloxacin Demo",
+"Cisplatin Demo",
+"Citalopram Demo",
+"Clarithromycin Demo",
+"Clindamycin Demo",
+"Clobetasol Demo",
+"Clomipramine Demo",
+"Clonazepam Demo",
+"Clonidine Demo",
+"Clopidogrel Demo",
+"Clotrimazole Demo",
+"Clozapine Demo",
+"Codeine Demo",
+"Colchicine Demo",
+"Cyclosporine Demo",
+"Cyclophosphamide Demo",
+
+"Dabigatran Demo",
+"Dapagliflozin Demo",
+"Dapsone Demo",
+"Darifenacin Demo",
+"Darunavir Demo",
+"Dasatinib Demo",
+"Deferasirox Demo",
+"Deferiprone Demo",
+"Deflazacort Demo",
+"Desloratadine Demo",
+"Desmopressin Demo",
+"Dexamethasone Demo",
+"Dexlansoprazole Demo",
+"Dextromethorphan Demo",
+"Diazepam Demo",
+"Diclofenac Demo",
+"Didanosine Demo",
+"Digoxin Demo",
+"Diltiazem Demo",
+"Dimenhydrinate Demo",
+"Dimethyl fumarate Demo",
+"Dinoprostone Demo",
+"Diphenhydramine Demo",
+"Dipyridamole Demo",
+"Disulfiram Demo",
+"Docetaxel Demo",
+"Docusate Demo",
+"Dolutegravir Demo",
+"Domperidone Demo",
+"Donepezil Demo",
+"Dopamine Demo",
+"Dorzolamide Demo",
+"Doxazosin Demo",
+"Doxepin Demo",
+"Doxycycline Demo",
+"Dulaglutide Demo",
+"Duloxetine Demo",
+
+"Ebastine Demo",
+"Econazole Demo",
+"Edoxaban Demo",
+"Efavirenz Demo",
+"Eletriptan Demo",
+"Empagliflozin Demo",
+"Enalapril Demo",
+"Enasidenib Demo",
+"Enoxaparin Demo",
+"Entacapone Demo",
+"Entecavir Demo",
+"Enzalutamide Demo",
+"Eplerenone Demo",
+"Epoetin Demo",
+"Erlotinib Demo",
+"Ertapenem Demo",
+"Erythromycin Demo",
+"Escitalopram Demo",
+"Esomeprazole Demo",
+"Etanercept Demo",
+"Ethambutol Demo",
+"Etodolac Demo",
+"Etoricoxib Demo",
+"Everolimus Demo",
+"Exemestane Demo",
+"Exenatide Demo",
+
+"Famciclovir Demo",
+"Famotidine Demo",
+"Febuxostat Demo",
+"Felbamate Demo",
+"Felodipine Demo",
+"Fenofibrate Demo",
+"Fentanyl Demo",
+"Fexofenadine Demo",
+"Finasteride Demo",
+"Flecainide Demo",
+"Fluconazole Demo",
+"Fluoxetine Demo",
+"Flutamide Demo",
+"Fluticasone Demo",
+"Folic Acid Demo",
+"Fondaparinux Demo",
+"Formoterol Demo",
+"Fosfomycin Demo",
+"Furosemide Demo",
+
+"Gabapentin Demo",
+"Ganciclovir Demo",
+"Gefitinib Demo",
+"Gemcitabine Demo",
+"Gemfibrozil Demo",
+"Glimepiride Demo",
+"Glipizide Demo",
+"Glucagon Demo",
+"Glyburide Demo",
+"Goserelin Demo",
+"Granisetron Demo",
+"Griseofulvin Demo",
+
+"Haloperidol Demo",
+"Heparin Demo",
+"Hydralazine Demo",
+"Hydrochlorothiazide Demo",
+"Hydrocortisone Demo",
+"Hydroxychloroquine Demo",
+"Hydroxyurea Demo",
+
+"Ibuprofen Demo",
+"Imatinib Demo",
+"Imipenem Demo",
+"Imipramine Demo",
+"Indapamide Demo",
+"Indomethacin Demo",
+"Infliximab Demo",
+"Insulin Demo",
+"Irbesartan Demo",
+"Irinotecan Demo",
+"Isoniazid Demo",
+"Isosorbide Demo",
+"Isotretinoin Demo",
+"Itraconazole Demo",
+"Ivermectin Demo",
+
+"Januvia Demo",
+"Josamycin Demo",
+
+"Ketamine Demo",
+"Ketoconazole Demo",
+"Ketoprofen Demo",
+"Ketorolac Demo",
+"Ketotifen Demo",
+
+"Labetalol Demo",
+"Lacosamide Demo",
+"Lactulose Demo",
+"Lamotrigine Demo",
+"Lansoprazole Demo",
+"Letrozole Demo",
+"Leucovorin Demo",
+"Leuprolide Demo",
+"Levetiracetam Demo",
+"Levocetirizine Demo",
+"Levofloxacin Demo",
+"Levothyroxine Demo",
+"Lidocaine Demo",
+"Linagliptin Demo",
+"Linezolid Demo",
+"Lisinopril Demo",
+"Liothyronine Demo",
+"Loperamide Demo",
+"Loratadine Demo",
+"Losartan Demo",
+"Loteprednol Demo",
+"Lovastatin Demo",
+"Lurasidone Demo",
+
+"Macitentan Demo",
+"Magnesium Demo",
+"Meloxicam Demo",
+"Memantine Demo",
+"Mepivacaine Demo",
+"Meropenem Demo",
+"Mesalamine Demo",
+"Metformin Demo",
+"Methimazole Demo",
+"Methotrexate Demo",
+"Methylprednisolone Demo",
+"Metoclopramide Demo",
+"Metoprolol Demo",
+"Metronidazole Demo",
+"Methysoft Cap",
+"Midazolam Demo",
+"Midodrine Demo",
+"Mirabegron Demo",
+"Mirtazapine Demo",
+"Montelukast Demo",
+"Morphine Demo",
+"Moxifloxacin Demo",
+"Multivitamin Demo",
+
+"Nabumetone Demo",
+"Nadolol Demo",
+"Naloxone Demo",
+"Naprosyn Demo",
+"Naproxen Demo",
+"Nateglinide Demo",
+"Neomycin Demo",
+"Nevirapine Demo",
+"Nicardipine Demo",
+"Nifedipine Demo",
+"Nilotinib Demo",
+"Nimesulide Demo",
+"Nitazoxanide Demo",
+"Nitrofurantoin Demo",
+"Nitroglycerin Demo",
+"Nortriptyline Demo",
+
+"Obeticholic Demo",
+"Ofloxacin Demo",
+"Olanzapine Demo",
+"Olmesartan Demo",
+"Omeprazole Demo",
+"Ondansetron Demo",
+"Orlistat Demo",
+"Oseltamivir Demo",
+"Oxcarbazepine Demo",
+"Oxybutynin Demo",
+"Oxycodone Demo",
+
+"Paclitaxel Demo",
+"Palbociclib Demo",
+"Pantoprazole Demo",
+"Paracetamol 500mg Tablet",
+"Paroxetine Demo",
+"Penicillin Demo",
+"Pentoxifylline Demo",
+"Permethrin Demo",
+"Perindopril Demo",
+"Phenazopyridine Demo",
+"Phenytoin Demo",
+"Pioglitazone Demo",
+"Piracetam Demo",
+"Pitavastatin Demo",
+"Prednisolone Demo",
+"Prednisone Demo",
+"Pregabalin Demo",
+"Probenecid Demo",
+"Progesterone Demo",
+"Promethazine Demo",
+"Propofol Demo",
+"Propranolol Demo",
+
+"Quetiapine Demo",
+"Quinapril Demo",
+"Quinine Demo",
+
+"R - Zet DSR",
+"Rabeprazole Demo",
+"Raltegravir Demo",
+"Ramipril Demo",
+"Ranitidine Demo",
+"Rasagiline Demo",
+"Remdesivir Demo",
+"Repaglinide Demo",
+"Rifabutin Demo",
+"Rifampicin Demo",
+"Rivaroxaban Demo",
+"Rizatriptan Demo",
+"Ropinirole Demo",
+"Rosuvastatin Demo",
+"Ruxolitinib Demo",
+
+"Salbutamol Demo",
+"Saxagliptin Demo",
+"Secukinumab Demo",
+"Sertraline Demo",
+"Sevelamer Demo",
+"Sildenafil Demo",
+"Simvastatin Demo",
+"Sitagliptin Demo",
+"Sirolimus Demo",
+"Sodium bicarbonate Demo",
+"Sofosbuvir Demo",
+"Solifenacin Demo",
+"Spironolactone Demo",
+"Streptomycin Demo",
+"Sucralfate Demo",
+"Sulfamethoxazole Demo",
+"Sumatriptan Demo",
+
+"Tacrolimus Demo",
+"Tadalafil Demo",
+"Tamoxifen Demo",
+"Tamsulosin Demo",
+"Telbax-AM",
+"Telmikind - A",
+"Telmer 20MG Tab",
+"Telmisartan Demo",
+"Tenofovir Demo",
+"Terazosin Demo",
+"Terbinafine Demo",
+"Terbutaline Demo",
+"Tetracycline Demo",
+"Theophylline Demo",
+"Thiamine Demo",
+"Timolol Demo",
+"Tizanidine Demo",
+"Tofacitinib Demo",
+"Topiramate Demo",
+"Tramadol Demo",
+"Travoprost Demo",
+"Trazodone Demo",
+"Triamcinolone Demo",
+"Trimethoprim Demo",
+
+"Valacyclovir Demo",
+"Valganciclovir Demo",
+"Valsartan Demo",
+"Vancomycin Demo",
+"Vardenafil Demo",
+"Venlafaxine Demo",
+"Verapamil Demo",
+"Voriconazole Demo",
+
+"Warfarin Demo",
+
+"Xalon 0.5 MG",
+
+"Yohimbine Demo",
+
+"Zaleplon Demo",
+"Zidovudine Demo",
+"Zinc Demo",
+"Ziprasidone Demo",
+"Zoledronic Acid Demo",
+"Zolmitriptan Demo",
+"Zolpidem Demo",
+"Zonisamide Demo",
+"Zopiclone Demo"
+
+];
+
+
+/* =====================================================
+   SORT A → Z
+   ===================================================== */
+
+medicineNames.sort((a, b) =>
+    a.localeCompare(b, undefined, {
+        sensitivity: "base"
+    })
+);
+
+
+/* =====================================================
+   CREATE DROPDOWN
+   ===================================================== */
+
+const medicineSelect =
+    document.getElementById("medicine");
+
+medicineNames.forEach((medicine, index) => {
+
+    const option =
+        document.createElement("option");
+
+    option.value = medicine;
+
+    const demoPrice =
+        20 + ((index * 17) % 180);
+
+    option.dataset.price =
+        demoPrice;
+
+    option.textContent =
+        medicine;
+
+    medicineSelect.appendChild(option);
+});
+
+
+document.getElementById("medicineCount").textContent =
+    medicineNames.length +
+    " demo medicines available — arranged A to Z";
+
+
+/* =====================================================
+   PRICE
+   ===================================================== */
+
+function updatePrice() {
+
+    const selected =
+        medicineSelect.options[
+            medicineSelect.selectedIndex
+        ];
+
+    document.getElementById("price").textContent =
+        selected.dataset.price;
+}
+
+
+/* =====================================================
+   BUY MEDICINE
+   ===================================================== */
+
+function buyMedicine() {
+
+    const medicine =
+        document.getElementById("medicine").value;
+
+    const quantity =
+        parseInt(
+            document.getElementById("quantity").value
+        );
+
+
+    if (!quantity || quantity < 1) {
+
+        alert(
+            "Please enter a valid quantity."
+        );
+
+        return;
+    }
+
+
+    if (quantity > 5) {
+
+        document.getElementById(
+            "mediSentry"
+        ).style.display = "block";
+
+
+        document.getElementById(
+            "selectedMedicine"
+        ).value = medicine;
+
+
+        document.getElementById(
+            "verificationResult"
+        ).innerHTML = "";
+
+
+        document.getElementById(
+            "otpSection"
+        ).style.display = "none";
+
+
+        document.getElementById(
+            "otpResult"
+        ).innerHTML = "";
+
+
+        document.getElementById(
+            "otp"
+        ).value = "";
+
+
+        window.pendingPrescription =
+            null;
+
+
+        window.scrollTo({
+
+            top:
+                document.getElementById(
+                    "mediSentry"
+                ).offsetTop,
+
+            behavior: "smooth"
+        });
+
+
+    } else {
+
+        const price =
+            parseFloat(
+                medicineSelect.options[
+                    medicineSelect.selectedIndex
+                ].dataset.price
+            );
+
+
+        const total =
+            price * quantity;
+
+
+        alert(
+            "Purchase completed!\n\n" +
+            "Medicine: " + medicine +
+            "\nQuantity: " + quantity +
+            "\nTotal: ₹" + total
+        );
+    }
+}
+
+
+/* =====================================================
+   NORMALIZE OCR TEXT
+   ===================================================== */
+
+function normalizeText(text) {
+
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+}
+
+
+/* =====================================================
+   MEDICINE TOKEN MATCHING
+   ===================================================== */
+
+function medicineMatches(
+    selectedMedicine,
+    ocrText
+) {
+
+    const selected =
+        normalizeText(
+            selectedMedicine
+        );
+
+    const ocr =
+        normalizeText(
+            ocrText
+        );
+
+
+    /*
+       Remove demo word because the
+       prescription may not contain it.
+    */
+
+    const words =
+        selected
+            .split(" ")
+            .filter(word =>
+                word.length > 2 &&
+                word !== "demo"
+            );
+
+
+    /*
+       Check important words individually.
+       This is more OCR tolerant than
+       exact full-string matching.
+    */
+
+    let matchedWords = 0;
+
+
+    for (const word of words) {
+
+        if (ocr.includes(word)) {
+            matchedWords++;
+        }
+    }
+
+
+    /*
+       If every important word is found,
+       accept the medicine.
+    */
+
+    if (
+        words.length > 0 &&
+        matchedWords === words.length
+    ) {
+
+        return true;
+    }
+
+
+    /*
+       Allow one OCR-missed word for
+       longer medicine names.
+    */
+
+    if (
+        words.length >= 3 &&
+        matchedWords >= words.length - 1
+    ) {
+
+        return true;
+    }
+
+
+    return false;
+}
+
+
+/* =====================================================
+   QUANTITY EXTRACTION
+   ===================================================== */
+
+function extractQuantity(ocrText) {
+
+    const cleanOCR =
+        normalizeText(
+            ocrText
+        );
+
+
+    console.log(
+        "Clean OCR:",
+        cleanOCR
+    );
+
+
+    let match;
+
+
+    /*
+       CASE 1
+
+       Quantity: 8
+       Qty: 8
+       Qty - 8
+    */
+
+    match =
+        cleanOCR.match(
+            /\b(?:quantity|qty)\s*[:\-]?\s*(\d{1,3})\b/i
+        );
+
+
+    if (match) {
+
+        return Number(
+            match[1]
+        );
+    }
+
+
+    /*
+       CASE 2
+
+       OCR may produce:
+
+       Qty
+       8
+    */
+
+    const qtyPosition =
+        cleanOCR.search(
+            /\b(?:qty|quantity)\b/i
+        );
+
+
+    if (qtyPosition !== -1) {
+
+        const nearbyText =
+            cleanOCR.substring(
+                qtyPosition,
+                qtyPosition + 80
+            );
+
+
+        console.log(
+            "Text near Qty:",
+            nearbyText
+        );
+
+
+        const numbers =
+            nearbyText.match(
+                /\b\d{1,3}\b/g
+            );
+
+
+        if (
+            numbers &&
+            numbers.length > 0
+        ) {
+
+            return Number(
+                numbers[0]
+            );
+        }
+    }
+
+
+    /*
+       CASE 3
+
+       Some OCR output may put the
+       quantity column on separate lines.
+
+       Example:
+
+       medicine
+       8
+       12.50
+       100.00
+
+       We deliberately do not guess
+       from random numbers because that
+       could cause incorrect approval.
+    */
+
+    return null;
+}
+
+
+/* =====================================================
+   CHECK PRESCRIPTION DATE
+   ===================================================== */
+
+function checkPrescriptionDate(
+    prescribedDate
+) {
+
+    const today =
+        new Date();
+
+    today.setHours(
+        0, 0, 0, 0
+    );
+
+
+    const prescriptionDate =
+        new Date(
+            prescribedDate +
+            "T00:00:00"
+        );
+
+    prescriptionDate.setHours(
+        0, 0, 0, 0
+    );
+
+
+    if (
+        prescriptionDate >
+        today
+    ) {
+
+        return {
+
+            valid: false,
+
+            reason:
+                "Prescription date cannot be in the future."
+        };
+    }
+
+
+    const difference =
+        today.getTime() -
+        prescriptionDate.getTime();
+
+
+    const daysOld =
+        Math.floor(
+            difference /
+            (1000 * 60 * 60 * 24)
+        );
+
+
+    /*
+       14 days is allowed.
+       More than 14 days is rejected.
+    */
+
+    if (
+        daysOld > 14
+    ) {
+
+        return {
+
+            valid: false,
+
+            reason:
+                "Prescription is older than 14 days."
+        };
+    }
+
+
+    return {
+
+        valid: true,
+
+        daysOld: daysOld
+    };
+}
+
+
+/* =====================================================
+   CREATE USED-PRESCRIPTION KEY
+   ===================================================== */
+
+function createPrescriptionKey(
+    name,
+    mobile,
+    medicine,
+    prescribedDate
+) {
+
+    return [
+
+        normalizeText(name),
+
+        mobile,
+
+        normalizeText(medicine),
+
+        prescribedDate
+
+    ].join("|");
+}
+
+
+/* =====================================================
+   CHECK ALREADY USED
+   ===================================================== */
+
+function prescriptionAlreadyUsed(
+    prescriptionKey
+) {
+
+    const used =
+        JSON.parse(
+            localStorage.getItem(
+                "medisentryUsedPrescriptions"
+            ) || "[]"
+        );
+
+
+    return used.includes(
+        prescriptionKey
+    );
+}
+
+
+/* =====================================================
+   STORE USED PRESCRIPTION
+   ===================================================== */
+
+function storeUsedPrescription(
+    prescriptionKey
+) {
+
+    const used =
+        JSON.parse(
+            localStorage.getItem(
+                "medisentryUsedPrescriptions"
+            ) || "[]"
+        );
+
+
+    if (
+        !used.includes(
+            prescriptionKey
+        )
+    ) {
+
+        used.push(
+            prescriptionKey
+        );
+    }
+
+
+    localStorage.setItem(
+        "medisentryUsedPrescriptions",
+        JSON.stringify(used)
+    );
+}
+
+
+/* =====================================================
+   VERIFY PRESCRIPTION
+   ===================================================== */
+
+async function verifyPrescription() {
+
+    const medicine =
+        document.getElementById(
+            "selectedMedicine"
+        ).value;
+
+
+    const name =
+        document.getElementById(
+            "customerName"
+        ).value.trim();
+
+
+    const age =
+        document.getElementById(
+            "age"
+        ).value;
+
+
+    const mobile =
+        document.getElementById(
+            "mobileNumber"
+        ).value.trim();
+
+
+    const purchaseDate =
+        document.getElementById(
+            "purchaseDate"
+        ).value;
+
+
+    const prescribedDate =
+        document.getElementById(
+            "prescribedDate"
+        ).value;
+
+
+    const file =
+        document.getElementById(
+            "prescription"
+        ).files[0];
+
+
+    const requestedQuantity =
+        parseInt(
+            document.getElementById(
+                "quantity"
+            ).value
+        );
+
+
+    const result =
+        document.getElementById(
+            "verificationResult"
+        );
+
+
+    /*
+       Hide OTP whenever a new
+       verification starts.
+    */
+
+    document.getElementById(
+        "otpSection"
+    ).style.display = "none";
+
+
+    document.getElementById(
+        "otpResult"
+    ).innerHTML = "";
+
+
+    window.pendingPrescription =
+        null;
+
+
+    /* =================================================
+       BASIC VALIDATION
+       ================================================= */
+
+    if (
+        !name ||
+        !age ||
+        !mobile ||
+        !purchaseDate ||
+        !prescribedDate ||
+        !file
+    ) {
+
+        result.innerHTML = `
+
+            <div class="result failure">
+
+                ❌ Please complete all fields
+                and upload a prescription.
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    /* =================================================
+       MOBILE VALIDATION
+       ================================================= */
+
+    if (
+        !/^[0-9]{10}$/.test(
+            mobile
+        )
+    ) {
+
+        result.innerHTML = `
+
+            <div class="result failure">
+
+                ❌ Please enter a valid
+                10-digit mobile number.
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    /* =================================================
+       PURCHASE DATE
+       ================================================= */
+
+    const now =
+        new Date();
+
+    const today =
+        now.getFullYear() +
+        "-" +
+        String(
+            now.getMonth() + 1
+        ).padStart(2, "0") +
+        "-" +
+        String(
+            now.getDate()
+        ).padStart(2, "0");
+
+
+    if (
+        purchaseDate !== today
+    ) {
+
+        result.innerHTML = `
+
+            <div class="result failure">
+
+                ❌ PRESCRIPTION REJECTED
+
+                <br><br>
+
+                Purchase date must be
+                today's date.
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    /* =================================================
+       PRESCRIPTION DATE
+       ================================================= */
+
+    const dateCheck =
+        checkPrescriptionDate(
+            prescribedDate
+        );
+
+
+    if (
+        !dateCheck.valid
+    ) {
+
+        result.innerHTML = `
+
+            <div class="result failure">
+
+                ❌ PRESCRIPTION REJECTED
+
+                <br><br>
+
+                ${dateCheck.reason}
+
+                <br><br>
+
+                Prescription must be
+                <strong>14 days old or less</strong>.
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    /* =================================================
+       CHECK ALREADY USED
+       ================================================= */
+
+    const prescriptionKey =
+        createPrescriptionKey(
+            name,
+            mobile,
+            medicine,
+            prescribedDate
+        );
+
+
+    if (
+        prescriptionAlreadyUsed(
+            prescriptionKey
+        )
+    ) {
+
+        result.innerHTML = `
+
+            <div class="result failure">
+
+                ❌
+                <strong>
+                    Medicine Already Bought
+                </strong>
+
+                <br><br>
+
+                This prescription has
+                already been used for a
+                previous purchase.
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    /* =================================================
+       START OCR
+       ================================================= */
+
+    result.innerHTML = `
+
+        <div class="result">
+
+            🔍 Reading prescription...
+
+            <br><br>
+
+            Please wait.
+
+        </div>
+
+    `;
+
+
+    try {
+
+        const worker =
+            await Tesseract.createWorker(
+                "eng"
+            );
+
+
+        const {
+            data: { text }
+        } =
+            await worker.recognize(
+                file
+            );
+
+
+        await worker.terminate();
+
+
+        /*
+           SHOW OCR IN CONSOLE
+           FOR DEBUGGING
+        */
+
+        console.log(
+            "=============================="
+        );
+
+        console.log(
+            "OCR TEXT:"
+        );
+
+        console.log(
+            text
+        );
+
+        console.log(
+            "=============================="
+        );
+
+
+        /* =================================================
+           NAME CHECK
+           ================================================= */
+
+        const normalizedOCR =
+            normalizeText(
+                text
+            );
+
+
+        const normalizedName =
+            normalizeText(
+                name
+            );
+
+
+        const nameFound =
+            normalizedOCR.includes(
+                normalizedName
+            );
+
+
+        /* =================================================
+           MEDICINE CHECK
+           ================================================= */
+
+        const medicineFound =
+            medicineMatches(
+                medicine,
+                text
+            );
+
+
+        /* =================================================
+           QUANTITY CHECK
+           ================================================= */
+
+        const prescribedQuantity =
+            extractQuantity(
+                text
+            );
+
+
+        console.log(
+            "Requested quantity:",
+            requestedQuantity
+        );
+
+        console.log(
+            "Detected prescription quantity:",
+            prescribedQuantity
+        );
+
+
+        let quantityFound =
+            false;
+
+
+        if (
+            prescribedQuantity !== null
+        ) {
+
+            quantityFound =
+                prescribedQuantity >=
+                requestedQuantity;
+        }
+
+
+        /* =================================================
+           RESULTS
+           ================================================= */
+
+        const reasons = [];
+
+
+        if (!nameFound) {
+
+            reasons.push(
+                "Patient name does not match."
+            );
+        }
+
+
+        if (!medicineFound) {
+
+            reasons.push(
+                "Medicine does not match."
+            );
+        }
+
+
+        if (
+            prescribedQuantity === null
+        ) {
+
+            reasons.push(
+                "Prescription quantity could not be detected."
+            );
+
+        } else if (
+            prescribedQuantity <
+            requestedQuantity
+        ) {
+
+            reasons.push(
+                "Prescribed quantity is less than requested quantity."
+            );
+        }
+
+
+        /* =================================================
+           REJECT
+           ================================================= */
+
+        if (
+            reasons.length > 0
+        ) {
+
+            result.innerHTML = `
+
+                <div class="result failure">
+
+                    ❌
+                    <strong>
+                        PRESCRIPTION REJECTED
+                    </strong>
+
+                    <br><br>
+
+                    <strong>
+                        Reasons:
+                    </strong>
+
+                    <ul>
+
+                        ${
+
+                            reasons
+                                .map(
+                                    reason =>
+                                    `<li>${reason}</li>`
+                                )
+                                .join("")
+
+                        }
+
+                    </ul>
+
+                    <br>
+
+                    <small>
+                        OCR detected quantity:
+                        ${
+                            prescribedQuantity === null
+                            ? "Not detected"
+                            : prescribedQuantity
+                        }
+                    </small>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        /* =================================================
+           ALL CHECKS PASSED
+           ================================================= */
+
+        result.innerHTML = `
+
+            <div class="result success">
+
+                ✅
+                <strong>
+                    PRESCRIPTION DETAILS VERIFIED
+                </strong>
+
+                <br><br>
+
+                Patient:
+                ${name}
+
+                <br>
+
+                Age:
+                ${age}
+
+                <br>
+
+                Mobile:
+                ${mobile}
+
+                <br>
+
+                Medicine:
+                ${medicine}
+
+                <br>
+
+                Requested Quantity:
+                ${requestedQuantity}
+
+                <br>
+
+                Prescribed Quantity:
+                ${prescribedQuantity}
+
+                <br>
+
+                Prescription age:
+                ${dateCheck.daysOld}
+                day(s)
+
+                <br><br>
+
+                ✓ Patient name matched
+
+                <br>
+
+                ✓ Medicine matched
+
+                <br>
+
+                ✓ Quantity verified
+
+                <br>
+
+                ✓ Prescription date valid
+
+                <br>
+
+                ✓ Mobile number valid
+
+                <br><br>
+
+                📱
+                <strong>
+                    Final step: OTP verification
+                </strong>
+
+            </div>
+
+        `;
+
+
+        /* =================================================
+           OTP IS LAST STEP
+           ================================================= */
+
+        document.getElementById(
+            "otpSection"
+        ).style.display = "block";
+
+
+        /*
+           Store pending data.
+           It will only become USED
+           after correct OTP.
+        */
+
+        window.pendingPrescription = {
+
+            key:
+                prescriptionKey,
+
+            name:
+                name,
+
+            mobile:
+                mobile,
+
+            medicine:
+                medicine,
+
+            quantity:
+                requestedQuantity,
+
+            price:
+                parseFloat(
+                    medicineSelect.options[
+                        medicineSelect.selectedIndex
+                    ].dataset.price
+                )
+
+        };
+
+
+        window.scrollTo({
+
+            top:
+                document.getElementById(
+                    "otpSection"
+                ).offsetTop,
+
+            behavior: "smooth"
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "OCR ERROR:",
+            error
+        );
+
+
+        result.innerHTML = `
+
+            <div class="result failure">
+
+                ❌ Unable to read
+                the prescription image.
+
+                <br><br>
+
+                Please upload a
+                clear image.
+
+            </div>
+
+        `;
+    }
+}
+
+
+/* =====================================================
+   FINAL OTP VERIFICATION
+   ===================================================== */
+
+function verifyOTP() {
+
+    const otp =
+        document.getElementById(
+            "otp"
+        ).value.trim();
+
+
+    const otpResult =
+        document.getElementById(
+            "otpResult"
+        );
+
+
+    /* =================================================
+       FIXED DEMO OTP
+       ================================================= */
+
+    if (
+        otp !== "123456"
+    ) {
+
+        otpResult.innerHTML = `
+
+            <div class="result failure">
+
+                ❌
+                <strong>
+                    Invalid OTP
+                </strong>
+
+                <br><br>
+
+                Please enter the
+                correct 6-digit OTP.
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    /* =================================================
+       CHECK PENDING PRESCRIPTION
+       ================================================= */
+
+    if (
+        !window.pendingPrescription
+    ) {
+
+        otpResult.innerHTML = `
+
+            <div class="result failure">
+
+                ❌ Verification session expired.
+
+                <br><br>
+
+                Please start again.
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    const data =
+        window.pendingPrescription;
+
+
+    /* =================================================
+       DOUBLE CHECK USED STATUS
+       ================================================= */
+
+    if (
+        prescriptionAlreadyUsed(
+            data.key
+        )
+    ) {
+
+        otpResult.innerHTML = `
+
+            <div class="result failure">
+
+                ❌
+                <strong>
+                    Medicine Already Bought
+                </strong>
+
+                <br><br>
+
+                This prescription has
+                already been used.
+
+            </div>
+
+        `;
+
+        return;
+    }
+
+
+    /* =================================================
+       STORE PRESCRIPTION AS USED
+       ================================================= */
+
+    storeUsedPrescription(
+        data.key
+    );
+
+
+    /* =================================================
+       CALCULATE TOTAL
+       ================================================= */
+
+    const total =
+        data.price *
+        data.quantity;
+
+
+    /* =================================================
+       FINAL SUCCESS
+       ================================================= */
+
+    otpResult.innerHTML = `
+
+        <div class="result success">
+
+            🎉
+            <strong>
+                PURCHASE VERIFIED
+            </strong>
+
+            <br><br>
+
+            Patient:
+            ${data.name}
+
+            <br>
+
+            Medicine:
+            ${data.medicine}
+
+            <br>
+
+            Quantity:
+            ${data.quantity}
+
+            <br>
+
+            Mobile:
+            ${data.mobile}
+
+            <br>
+
+            OTP:
+            ✓ Verified
+
+            <br><br>
+
+            💰 Total Demo Price:
+            ₹${total}
+
+            <br><br>
+
+            🟢
+            <strong>
+                Prescription marked as USED.
+            </strong>
+
+        </div>
+
+    `;
+
+
+    /*
+       Clear pending verification.s
+    */
+
+    window.pendingPrescription =
+        null;
+}
+
+
+/* =====================================================
+   INITIAL PRICE
+   ===================================================== */
+
+updatePrice();
+
+</script>
+
+</body>
+</html>
